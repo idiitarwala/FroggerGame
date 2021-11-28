@@ -1,0 +1,105 @@
+# Demo for painting
+#
+# Bitmap Display Configuration:
+# - Unit width in pixels: 8
+# - Unit height in pixels: 8
+# - Display width in pixels: 256
+# - Display height in pixels: 256
+# - Base Address for Display: 0x10008000 ($gp)
+#
+.data
+displayAddress: .word 0x10008000
+frogLocation: .word 3648
+
+.text
+
+
+main:
+	jal drawBackground
+	lw $t1, frogLocation
+	addi $sp, $sp, -4 
+	sw $t1, 0($sp)
+	jal drawFrog
+	j Exit
+
+
+drawBackground:
+
+	lw $t0, displayAddress # $t0 stores the base address for display
+	li $t1, 0xE5D14F # $t1 stores the mud colour code
+	li $t2, 0x62ED08 # $t2 stores the green colour code
+	li $t3, 0x00F0FF  # $t3 stores the blue colour code
+	li $t6, 0x3A3A3A # $t6 stores the gray color
+	li $t4, 4 #increment position by 4
+	li $t5, 0 #pixel position
+
+	paintSafe: 
+	sw $t2,0($t0)
+	add $t0, $t0, $t4
+	add $t5, $t5, $t4 #increment pixel position
+	beq $t5, 1024, paintWaterUp
+	j paintSafe
+
+	paintWaterUp:
+	sw $t3,0($t0)
+	add $t0, $t0, $t4
+	add $t5, $t5, $t4 #increment pixel position
+	beq $t5, 2048, paintMiddleGround
+	j paintWaterUp
+
+	paintMiddleGround:
+	sw $t1,0($t0)
+	add $t0, $t0, $t4
+	add $t5, $t5, $t4 #increment pixel position
+	beq $t5, 2560, paintRoad
+	j paintMiddleGround
+
+	paintRoad:
+	sw $t6, 0($t0)
+	add $t0, $t0, $t4
+	add $t5, $t5, $t4 #increment pixel position
+	beq $t5, 3584, paintStart
+	j paintRoad
+
+	paintStart:
+	sw $t2,0($t0)
+	add $t0, $t0, $t4
+	add $t5, $t5, $t4 #increment pixel position
+	beq $t5, 4096, resetDP
+	j paintStart
+
+	resetDP:
+	lw $t0, displayAddress 
+	
+	jr $ra
+
+
+drawFrog:
+	li $t8, 0xFF0080
+	lw $a0, 0($sp) # pop frog coordinte parameter
+	addi $sp, $sp, 4 # increase length of stack
+	add $t0, $t0, $a0
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	FrogLoop: # create frog shape, square for now
+	sw $t8, 0($t0) # create a row
+	add $t1, $t1, 4
+	add $t0, $t0, 4
+	beq $t1, 16, nextRow
+	j FrogLoop
+	nextRow:
+	add $t0, $t0, 112 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 4, finish
+	j FrogLoop
+	
+	finish:
+	jr $ra
+
+
+Exit:
+li $v0, 10 # terminate the program gracefully
+syscall
+
