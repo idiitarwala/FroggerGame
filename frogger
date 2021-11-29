@@ -10,17 +10,42 @@
 .data
 displayAddress: .word 0x10008000
 frogLocation: .word 3648
-
+carRow1: .word 0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A
+carRow2: .word 0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303
 .text
 
 
 main:
+	#draw backgoround
 	jal drawBackground
+	#load frog location and push it to the stack
 	lw $t1, frogLocation
 	addi $sp, $sp, -4 
 	sw $t1, 0($sp)
+	#draw frog
 	jal drawFrog
+	#draw the first row of cars 
+	la $a1, carRow1
+	li $a0, 2560
+	jal drawCarRow
+	li $a0, 2688
+	jal drawCarRow
+	li $a0, 2816
+	jal drawCarRow
+	li $a0, 2944
+	jal drawCarRow
+	#draw the second row of cars
+	la $a1, carRow2
+	li $a0, 3072
+	jal drawCarRow
+	li $a0, 3200
+	jal drawCarRow
+	li $a0, 3328
+	jal drawCarRow
+	li $a0, 3456
+	jal drawCarRow
 	j Exit
+
 
 
 drawBackground:
@@ -78,14 +103,14 @@ drawFrog:
 	li $t8, 0xFF0080
 	lw $a0, 0($sp) # pop frog coordinte parameter
 	addi $sp, $sp, 4 # increase length of stack
-	add $t0, $t0, $a0
+	add $t0, $t0, $a0 # jump to position
 	
 	li $t1, 0 # horizontal counter
 	li $t2, 0 # vertical counter
 	FrogLoop: # create frog shape, square for now
 	sw $t8, 0($t0) # create a row
-	add $t1, $t1, 4
-	add $t0, $t0, 4
+	addi $t1, $t1, 4
+	addi $t0, $t0, 4
 	beq $t1, 16, nextRow
 	j FrogLoop
 	nextRow:
@@ -96,8 +121,35 @@ drawFrog:
 	j FrogLoop
 	
 	finish:
+	lw $t0, displayAddress #reset displayAddress to original value
 	jr $ra
 
+drawCarRow: # takes in an array of 32 colors and the starting position of the row
+	add $t0, $t0, $a0 # jump to position
+	
+	loopInit:
+	li $t4, 0 # t4 hold 4*i, intially at 0
+	li $t5, 128
+	
+	rowLoop:
+	bge, $t4, $t5, rowLoopEnd
+	add $t3, $a1, $t4 #stores the address of a1[i]
+	lw $t9, 0($t3) #contains the color to be painted
+	
+	sw $t9, 0($t0)
+	addi $t0, $t0, 4 #increment position 
+	addi $t4, $t4, 4 #incrememnt offset counter
+	j rowLoop
+	rowLoopEnd:
+	lw $t0, displayAddress #reset displayAddress to original value
+	jr $ra
+	
+	
+	
+	
+	
+	
+	
 
 Exit:
 li $v0, 10 # terminate the program gracefully
