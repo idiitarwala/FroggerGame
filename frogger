@@ -10,43 +10,60 @@
 .data
 displayAddress: .word 0x10008000
 frogLocation: .word 3648
+initialCarPosition: .word 
+intialLogPosition: .word 
 carRow1: .word 0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A
-carRow2: .word 0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303
+carRow2: .word 0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A
+logRow1: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E
+logRow2: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF
 .text
 
 
 main:
-	#draw backgoround
-	jal drawBackground
-	#load frog location and push it to the stack
-	lw $t1, frogLocation
-	addi $sp, $sp, -4 
-	sw $t1, 0($sp)
-	#draw frog
-	jal drawFrog
-	#draw the first row of cars 
-	la $a1, carRow1
-	li $a0, 2560
-	jal drawCarRow
-	li $a0, 2688
-	jal drawCarRow
-	li $a0, 2816
-	jal drawCarRow
-	li $a0, 2944
-	jal drawCarRow
-	#draw the second row of cars
-	la $a1, carRow2
-	li $a0, 3072
-	jal drawCarRow
-	li $a0, 3200
-	jal drawCarRow
-	li $a0, 3328
-	jal drawCarRow
-	li $a0, 3456
-	jal drawCarRow
+	
+	lw $a3, frogLocation
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $a3, 0($sp)
+	Redraw:
+	jal drawScreen
+
+
+
+
 	j Exit
 
-
+drawScreen:
+	#draw backgoround
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	jal drawBackground
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	lw $ra, 0($sp) # pop frog location and 
+	addi $sp, $sp, 4
+	
+	#draw frog
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	
+	jal drawFrog
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	jal drawAllCars
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	jal drawAllLogs
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	jr $ra
 
 drawBackground:
 
@@ -95,7 +112,6 @@ drawBackground:
 
 	resetDP:
 	lw $t0, displayAddress 
-	
 	jr $ra
 
 
@@ -124,7 +140,7 @@ drawFrog:
 	lw $t0, displayAddress #reset displayAddress to original value
 	jr $ra
 
-drawCarRow: # takes in an array of 32 colors and the starting position of the row
+drawRow: # takes in an array of 32 colors and the starting position of the row
 	add $t0, $t0, $a0 # jump to position
 	
 	loopInit:
@@ -144,9 +160,132 @@ drawCarRow: # takes in an array of 32 colors and the starting position of the ro
 	lw $t0, displayAddress #reset displayAddress to original value
 	jr $ra
 	
+
+drawAllCars:
+	#draw the first row of cars 
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	la $a1, carRow1
+	li $a0, 2560
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
 	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 2688
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
 	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 2816
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
 	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 2944
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	#draw the second row of cars
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	la $a1, carRow2
+	li $a0, 3072
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 3200
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 3328
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 3456
+	jal drawRow	
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	jr $ra
+	
+drawAllLogs:
+	#draw the first row of cars 
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	la $a1, logRow1
+	li $a0, 1024
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 1152
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 1280
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 1408
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	#draw the second row of cars
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	la $a1, logRow2
+	li $a0, 1536
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 1664
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 1792
+	jal drawRow
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	sw $ra, 0($sp)
+	li $a0, 1920
+	jal drawRow	
+	lw $ra, 0($sp) # restore ra from stack
+	addi $sp, $sp, 4
+	
+	jr $ra
 	
 	
 	
