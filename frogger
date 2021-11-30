@@ -21,10 +21,28 @@ logRow2: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x
 
 main:
 	
-	lw $a3, frogLocation
-	addi $sp, $sp, -4 # move stack pointer one word and store ra
-	sw $a3, 0($sp)
-	Redraw:
+	lw $t3, frogLocation
+	la $t4, carRow1
+	la $t5, carRow2
+	la $t6, logRow1
+	la $t7, logRow2
+	
+	StartHere: #start loop here
+	addi $sp, $sp, -4 # move stack pointer one word and store logrow1
+	sw $t6, 0($sp)
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store logrow2
+	sw $t7, 0($sp)
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store carrow1
+	sw $t4, 0($sp)
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store carrow2
+	sw $t5, 0($sp)
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store frog location
+	sw $t3, 0($sp)
+	
 	jal drawScreen
 
 
@@ -34,30 +52,50 @@ main:
 
 drawScreen:
 	#draw backgoround
+			
+
 	addi $sp, $sp, -4 # move stack pointer one word and store ra
 	sw $ra, 0($sp)
 	jal drawBackground
 	lw $ra, 0($sp) # restore ra from stack
 	addi $sp, $sp, 4
-	
-	lw $ra, 0($sp) # pop frog location and 
+
+	lw $t1, 0($sp) # pop frog position
 	addi $sp, $sp, 4
+		
 	
 	#draw frog
 	addi $sp, $sp, -4 # move stack pointer one word and store ra
 	sw $ra, 0($sp)
 	
+	addi $sp, $sp, -4 # push frog position back into the stack
+	sw $t1, 0($sp)
+	
 	jal drawFrog
 	lw $ra, 0($sp) # restore ra from stack
 	addi $sp, $sp, 4
 	
-	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	lw $s2, 0($sp) # c2
+	addi $sp, $sp, 4
+	
+	lw $s3, 0($sp) # c1
+	addi $sp, $sp, 4
+	
+	lw $s0, 0($sp) # l2
+	addi $sp, $sp, 4
+	
+	lw $s1, 0($sp) # l1
+	addi $sp, $sp, 4
+	#stack should be empty here
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store ra before row is drawn
 	sw $ra, 0($sp)
+	
 	jal drawAllCars
 	lw $ra, 0($sp) # restore ra from stack
 	addi $sp, $sp, 4
 	
-	addi $sp, $sp, -4 # move stack pointer one word and store ra
+	addi $sp, $sp, -4 # move stack pointer one word and store ra before row is drawn
 	sw $ra, 0($sp)
 	jal drawAllLogs
 	lw $ra, 0($sp) # restore ra from stack
@@ -162,10 +200,11 @@ drawRow: # takes in an array of 32 colors and the starting position of the row
 	
 
 drawAllCars:
+
 	#draw the first row of cars 
 	addi $sp, $sp, -4 # move stack pointer one word and store ra
 	sw $ra, 0($sp)
-	la $a1, carRow1
+	move $a1, $s3
 	li $a0, 2560
 	jal drawRow
 	lw $ra, 0($sp) # restore ra from stack
@@ -195,7 +234,7 @@ drawAllCars:
 	#draw the second row of cars
 	addi $sp, $sp, -4 # move stack pointer one word and store ra
 	sw $ra, 0($sp)
-	la $a1, carRow2
+	move $a1, $s2
 	li $a0, 3072
 	jal drawRow
 	lw $ra, 0($sp) # restore ra from stack
@@ -225,10 +264,11 @@ drawAllCars:
 	jr $ra
 	
 drawAllLogs:
-	#draw the first row of cars 
+
+	#draw the first row of logs 
 	addi $sp, $sp, -4 # move stack pointer one word and store ra
 	sw $ra, 0($sp)
-	la $a1, logRow1
+	move $a1, $s0
 	li $a0, 1024
 	jal drawRow
 	lw $ra, 0($sp) # restore ra from stack
@@ -258,7 +298,7 @@ drawAllLogs:
 	#draw the second row of cars
 	addi $sp, $sp, -4 # move stack pointer one word and store ra
 	sw $ra, 0($sp)
-	la $a1, logRow2
+	move $a1, $s1
 	li $a0, 1536
 	jal drawRow
 	lw $ra, 0($sp) # restore ra from stack
@@ -291,6 +331,6 @@ drawAllLogs:
 	
 
 Exit:
-li $v0, 10 # terminate the program gracefully
-syscall
+	li $v0, 10 # terminate the program gracefully
+	syscall
 
