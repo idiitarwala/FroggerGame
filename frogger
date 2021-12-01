@@ -1,4 +1,9 @@
-# Demo for painting
+#####################################################################
+#
+# CSC258H5S Fall 2021 Assembly Final Project
+# University of Toronto, St. George
+#
+# Student: Idris Tarwala, 1006896780
 #
 # Bitmap Display Configuration:
 # - Unit width in pixels: 8
@@ -7,6 +12,12 @@
 # - Display height in pixels: 256
 # - Base Address for Display: 0x10008000 ($gp)
 #
+# Which milestone is reached in this submission?
+# 
+# - Milestone 2
+
+#####################################################################
+
 .data
 displayAddress: .word 0x10008000
 frogLocation: .word 3648
@@ -21,7 +32,7 @@ logRow2: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x
 
 main:
 	
-	lw $t3, frogLocation
+	lw $s4, frogLocation
 	la $t4, carRow1
 	la $t5, carRow2
 	la $t6, logRow1
@@ -41,12 +52,44 @@ main:
 	sw $t5, 0($sp)
 	
 	addi $sp, $sp, -4 # move stack pointer one word and store frog location
-	sw $t3, 0($sp)
+	sw $s4, 0($sp)
 	
 	jal drawScreen
-
-
-
+	
+	
+	
+	addi $sp, $sp, -4  #move stack pointer one word and store logrow1
+	sw $s3, 0($sp) 
+	jal ShiftArrayLeft
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store logrow1
+	sw $s0, 0($sp) 
+	jal ShiftArrayLeft
+	
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store logrow1
+	sw $s1, 0($sp)
+	jal shiftArrayRight
+	
+	addi $sp, $sp, -4 # move stack pointer one word and store logrow1
+	sw $s2, 0($sp) 
+	jal shiftArrayRight
+	
+	jal MoveFrog
+	
+	jal MoveFrog
+	
+	move $t4, $s3
+	move $t5, $s2
+	move $t6, $s1
+	move $t7, $s0
+	
+	
+	li $v0, 32
+	li $a0, 1000
+	syscall
+	
+	j StartHere
 
 	j Exit
 
@@ -326,9 +369,112 @@ drawAllLogs:
 	addi $sp, $sp, 4
 	
 	jr $ra
+
+shiftArrayRight:
+	
+	lw $s6, 0($sp) # restore row address from stack
+	addi $sp, $sp, 4
+	
+	addi $t1, $s6, 124 # the intial offset address, we will subtract 4 from this using $t3
+	li $t2 , 124 # contains 4*i, we will subtract 4 from this until we reach 0
+	li $t3, 0 # we will add 4 to this each time until we reach 128
+	li $t8, 0
+	lw $t8, 124($s6) # contains temp value for cr2[n - 1]
+	
+	Shift:
+	bgtz $t2, FORLOOP
+	
+	#update final value
+	lw $t9, 0($s6) # cr2[0]
+	move $t9, $t8
+	sw $t9, 0($s6)
+	jr $ra 
+	
+	FORLOOP:
+	sub $t4, $t1, $t3 # contains the address of cr2[i] starting at the end first
+	subi $t6, $t4, 4 # contains the address of cr2[i - 1]
+	lw $t5, 0($t4) #contains cr2[i]
+	lw $t7, 0($t6) #contains cr2[i - 1]
+	
+	move $t5, $t7  # cr2[i] = cr2[i - 1]
+	sw $t5, 0($t4) #  store cr2[i] = cr2[i - 1]
+	
+	subi $t2,$t2, 4 #update loop condition
+	addi $t3,$t3, 4 #update offset
+	j Shift
 	
 	
 	
+ShiftArrayLeft:
+	
+	lw $s5, 0($sp) # contains address of the array
+	addi $sp, $sp, 4
+	lw $t1, 0($s5) #contains a[0]
+	li $t2, 0 # loop counter, we will increment this by 4 each time
+	
+	FORLOOP2:
+	bge $t2, 128, ENDLOOP2
+	add, $t3, $s5, $t2 #contains address for a[i]
+	lw $t4, 0($t3) # a[i]
+	lw $t5, 4($t3) # a[i + 1]
+	move $t4, $t5 # a[i] = a[i + 1]
+	sw $t4, 0($t3) #store the value in a[i]
+	addi $t2, $t2, 4 # update loop counter
+	j FORLOOP2
+	
+	ENDLOOP2:
+	lw $t6 124($s5) # a[n-1]
+	move $t6 $t1 # a[n - 1] = a[0]
+	sw $t6, 124($s5)
+	
+	jr $ra
+	
+
+MoveFrog:
+	lw $t8, 0xffff0000
+	beq $t8, 1, keyboard_input
+	j ENDFUNCTION
+	
+	
+	keyboard_input:
+	lw $t2, 0xffff0004
+	beq $t2, 0x77, respond_to_w
+	beq $t2, 0x61, respond_to_a
+	beq $t2, 0x73, respond_to_s
+	beq $t2, 0x64, respond_to_d
+	beq $t2, 0x64, respond_to_d
+	beq $t2, 0x71, respond_to_q
+	
+	respond_to_w:
+	
+	subi $s4, $s4, 512
+	j ENDFUNCTION
+	
+	respond_to_a:
+	
+	subi $s4, $s4, 16
+	j ENDFUNCTION
+	
+	respond_to_s:
+	
+	addi $s4, $s4, 512
+	j ENDFUNCTION
+	
+	respond_to_d:
+	
+	addi $s4, $s4, 16
+	j ENDFUNCTION
+	
+	respond_to_q:
+	
+	j Exit
+	
+	ENDFUNCTION:
+	
+	jr $ra
+	
+	
+
 
 Exit:
 	li $v0, 10 # terminate the program gracefully
