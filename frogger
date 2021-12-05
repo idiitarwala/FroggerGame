@@ -57,6 +57,10 @@ main:
 	sw $s3, 0($sp) 
 	jal ShiftArrayLeft
 	
+	addi $sp, $sp, -4  #move stack pointer one word and store carrow1
+	sw $s3, 0($sp) 
+	jal ShiftArrayLeft
+	
 	addi $sp, $sp, -4 # move stack pointer one word and store logrow2
 	sw $s0, 0($sp) 
 	jal ShiftArrayLeft
@@ -65,6 +69,12 @@ main:
 	sw $s1, 0($sp)
 	jal shiftArrayRight
 	
+	addi $sp, $sp, -4 # move stack pointer one word and store logrow1
+	sw $s1, 0($sp)
+	jal shiftArrayRight
+	
+	
+
 	addi $sp, $sp, -4 # move stack pointer one word and store carrow2
 	sw $s2, 0($sp) 
 	jal shiftArrayRight
@@ -152,11 +162,8 @@ main:
 	Sleep:
 	
 	jal drawLives #draw remaining lives
-	beq $a3, 0, Exit # exit when all lives are lost
-	
+	beq $a3, 0, GameOver # exit when all lives are lost
 	ble $s4, 128, winGame  # if frog reaches the end
-	
-	
 	
 	li $v0, 32
 	li $a0, 1000
@@ -171,7 +178,25 @@ main:
 	
 	j DefaultPosition
 	
-
+	GameOver: # draw game over symbol
+	
+	jal deleteScreen
+	jal drawGameOver
+	
+	InputWait:
+	lw $t8, 0xffff0000
+	beq $t8, 1, end_input
+	j InputWait
+	
+	
+	end_input:
+	lw $t2, 0xffff0004
+	beq $t2, 0x72, respond_to_r
+	j InputWait
+	
+	respond_to_r:
+	j InitalGame
+	
 	
 drawBackground:
 
@@ -550,7 +575,7 @@ frogShift:
 	j FINISHMOVEMENT
 	
 	ShiftFrogRight:
-	addi $s4, $s4, 4
+	addi $s4, $s4, 8
 	j FINISHMOVEMENT
 	
 	FINISHMOVEMENT:
@@ -624,9 +649,6 @@ drawLives:
 	j L3L3
 	
 
-
-
-
 	TwoLives:
 	
 	li $t1, 0 # horizontal counter
@@ -678,9 +700,288 @@ drawLives:
 	j L1L
 				
 
-								
+deleteScreen:
 
+	move $t1 $t0
+	li $t2, 0 # position
+	li $t3, 0x000000
+	
+	BlackScreenLoop:
+	beq $t2, 4096, BlackScreen
+	sw $t3, 0($t1) 
+	addi $t2, $t2, 4
+	addi $t1, $t1, 4
+	j BlackScreenLoop
+	
+	BlackScreen:
+	jr $ra
+	
+							
+drawGameOver:						
 
+	li $t1, 0xC10303
+	DrawG:
+	
+	#Y
+	add $t0, $t0, 1056
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 384
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	lw $t0, displayAddress
+	
+	#O
+	add $t0, $t0, 1080
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	lw $t0, displayAddress
+	
+	#O
+	add $t0, $t0, 1100
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	
+	lw $t0, displayAddress
+	
+	
+	#L
+	add $t0, $t0, 2328
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	lw $t0, displayAddress
+	
+	#O
+	add $t0, $t0, 2344
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	lw $t0, displayAddress
+	
+	#S
+	add $t0, $t0, 2376
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	lw $t0, displayAddress
+	
+	#E
+	add $t0, $t0, 2396
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	add $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 384
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	sub $t0, $t0, 4
+	sw $t1, 0($t0)
+	lw $t0, displayAddress
+	
+	# !
+	add $t0, $t0, 2404
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 128
+	sw $t1, 0($t0)
+	add $t0, $t0, 256
+	sw $t1, 0($t0)
+	lw $t0, displayAddress
+	
+	jr $ra
+	
+	
+	
+	
 Exit:
 	li $v0, 10 # terminate the program gracefully
 	syscall
