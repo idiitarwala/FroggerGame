@@ -14,7 +14,7 @@
 #
 # Which milestone is reached in this submission?
 # 
-# - Milestone 2
+# - Milestone 3
 
 #####################################################################
 
@@ -31,6 +31,8 @@ logRow2: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x
 
 
 main:	
+	InitalGame:
+	li $a3, 3 #inital number of lives
 	DefaultPosition:
 	#load variables
 	lw $s4, frogLocation
@@ -39,6 +41,7 @@ main:
 	la $s1, logRow1
 	la $s0, logRow2
 	li $s7, 0   # value of 1 if collision occurs
+	
 	
 	StartHere: #start loop here
 	
@@ -84,22 +87,22 @@ main:
 	
 	respond_to_w:
 	
-	subi $s4, $s4, 512
+	subi $s4, $s4, 128
 	j ENDLISTEN
 	
 	respond_to_a:
 	
-	subi $s4, $s4, 16
+	subi $s4, $s4, 4
 	j ENDLISTEN
 	
 	respond_to_s:
 	
-	addi $s4, $s4, 512
+	addi $s4, $s4, 128
 	j ENDLISTEN
 	
 	respond_to_d:
 	
-	addi $s4, $s4, 16
+	addi $s4, $s4, 4
 	j ENDLISTEN
 	
 	respond_to_q:
@@ -137,14 +140,20 @@ main:
 	# if either one is brown, then frog is on a log
 	beq $t9, 0xCC5C3E , shiftFrogWithLog
 	beq $t7, 0xCC5C3E , shiftFrogWithLog
+	lw $t0, displayAddress
 	j Sleep
 	
 	shiftFrogWithLog:
 	
 	jal frogShift
+	lw $t0, displayAddress
 	j Sleep
-
+	
 	Sleep:
+	
+	jal drawLives #draw remaining lives
+	beq $a3, 0, Exit # exit when all lives are lost
+	
 	li $v0, 32
 	li $a0, 1000
 	syscall
@@ -463,6 +472,7 @@ checkCollisionCar:
 	
 	Collision:
 	li $s7, 1
+	subi $a3, $a3, 1
 	j ENDCHECK
 	
 	ENDCHECK:
@@ -496,6 +506,7 @@ checkCollisionWater:
 	
 	CollisionLog:
 	li $s7, 1
+	subi $a3, $a3, 1
 	j ENDCHECKLOG
 	
 	ENDCHECKLOG:
@@ -534,7 +545,126 @@ frogShift:
 	jr $ra
 	
 	
-			
+drawLives:
+	li $t9, 0xFF0080
+	
+	move $t4, $t0 # starting location for first life
+	move $t5, $t0 # starting location for second life
+	move $t6, $t0 # starting location for third life
+	
+	addi $t4, $t4, 132
+	addi $t5, $t5, 144
+	addi $t6, $t6, 156
+	
+	beq $a3, 3, ThreeLives
+	beq $a3, 2, TwoLives
+	beq $a3, 1, OneLife
+	jr $ra
+	
+
+	ThreeLives:
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L: # create frog shape, square for now
+	sw $t9, 0($t4) # create a row
+	addi $t1, $t1, 4
+	addi $t4, $t4, 4
+	beq $t1, 8, nextRowL3L
+	j L3L
+	nextRowL3L:
+	add $t4, $t4, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, ThreeLives2
+	j L3L
+	
+	ThreeLives2:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L2: # create frog shape, square for now
+	sw $t9, 0($t5) # create a row
+	addi $t1, $t1, 4
+	addi $t5, $t5, 4
+	beq $t1, 8, nextRowL3L2
+	j L3L2
+	nextRowL3L2:
+	add $t5, $t5, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, ThreeLives3
+	j L3L2
+	
+	ThreeLives3:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L3: # create frog shape, square for now
+	sw $t9, 0($t6) # create a row
+	addi $t1, $t1, 4
+	addi $t6, $t6, 4
+	beq $t1, 8, nextRowL3L3
+	j L3L3
+	nextRowL3L3:
+	add $t6, $t6, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, finish
+	j L3L3
+	
+
+
+
+
+	TwoLives:
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L2L: # create frog shape, square for now
+	sw $t9, 0($t4) # create a row
+	addi $t1, $t1, 4
+	addi $t4, $t4, 4
+	beq $t1, 8, nextRowL2L
+	j L2L
+	nextRowL2L:
+	add $t4, $t4, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, TwoLives2
+	j L2L
+	
+	TwoLives2:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L2L2: # create frog shape, square for now
+	sw $t9, 0($t5) # create a row
+	addi $t1, $t1, 4
+	addi $t5, $t5, 4
+	beq $t1, 8, nextRowL2L2
+	j L2L2
+	nextRowL2L2:
+	add $t5, $t5, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, finish
+	j L2L2
+	
+	OneLife:
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L1L: # create frog shape, square for now
+	sw $t9, 0($t4) # create a row
+	addi $t1, $t1, 4
+	addi $t4, $t4, 4
+	beq $t1, 8, nextRowL1L
+	j L1L
+	nextRowL1L:
+	add $t4, $t4, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, finish
+	j L1L
+				
 							
 
 
