@@ -87,22 +87,22 @@ main:
 	
 	respond_to_w:
 	
-	subi $s4, $s4, 128
+	subi $s4, $s4, 512
 	j ENDLISTEN
 	
 	respond_to_a:
 	
-	subi $s4, $s4, 4
+	subi $s4, $s4, 16
 	j ENDLISTEN
 	
 	respond_to_s:
 	
-	addi $s4, $s4, 128
+	addi $s4, $s4, 512
 	j ENDLISTEN
 	
 	respond_to_d:
 	
-	addi $s4, $s4, 4
+	addi $s4, $s4, 16
 	j ENDLISTEN
 	
 	respond_to_q:
@@ -154,11 +154,23 @@ main:
 	jal drawLives #draw remaining lives
 	beq $a3, 0, Exit # exit when all lives are lost
 	
+	ble $s4, 128, winGame  # if frog reaches the end
+	
+	
+	
 	li $v0, 32
 	li $a0, 1000
 	syscall
 	
 	j StartHere
+	
+	winGame: # reset frog position if game is won
+	li $v0, 32
+	li $a0, 1000
+	syscall
+	
+	j DefaultPosition
+	
 
 	
 drawBackground:
@@ -665,7 +677,8 @@ drawLives:
 	beq $t2, 2, finish
 	j L1L
 				
-							
+
+								
 
 
 Exit:
