@@ -30,13 +30,15 @@ logRow2: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x
 .text
 
 
-main:
+main:	
+	DefaultPosition:
 	#load variables
 	lw $s4, frogLocation
 	la $s3, carRow1
 	la $s2, carRow2
 	la $s1, logRow1
 	la $s0, logRow2
+	li $s7, 0   # value of 1 if collision occurs
 	
 	StartHere: #start loop here
 	
@@ -105,14 +107,44 @@ main:
 	j Exit
 	
 	ENDLISTEN:
-
-	# draw frog with given position
 	
+	#check for collisions
+	
+	addi $sp, $sp, -4  #move stack pointer one word and store carrow1
+	sw $s4, 0($sp)
+	jal checkCollisionCar
+	beq $s7, 1, DefaultPosition  #if 1, collision has occured and want to change state of game
+	
+	addi $sp, $sp, -4  #move stack pointer one word and store carrow1
+	sw $s4, 0($sp)
+	jal checkCollisionWater
+	beq $s7, 1, DefaultPosition  #if 1, collision has occured and want to change state of game
+	
+
+	DrawingFrog:
+	# draw frog with given position
 	addi $sp, $sp, -4  #move stack pointer one word and store carrow1
 	sw $s4, 0($sp)
 	jal drawFrog
 	
-	#sleep
+	#check if frog is on log, if so, then shift to the left or right	:
+	
+	add $t0, $t0, $s4 # jump to position
+	#want to check if its on a log
+	lw $t8, 0($t0) # load current color
+	lw $t9, -4($t0) # load color to the left of frog
+	lw $t7, 20($t0) # load color to the right of frog
+	# if either one is brown, then frog is on a log
+	beq $t9, 0xCC5C3E , shiftFrogWithLog
+	beq $t7, 0xCC5C3E , shiftFrogWithLog
+	j Sleep
+	
+	shiftFrogWithLog:
+	
+	jal frogShift
+	j Sleep
+
+	Sleep:
 	li $v0, 32
 	li $a0, 1000
 	syscall
@@ -402,7 +434,109 @@ ShiftArrayLeft:
 	sw $t6, 124($s5)
 	
 	jr $ra
+
+
+checkCollisionCar:
 	
+	# want to loop over the frog position and if any color is red or blue
+	
+	lw $a0, 0($sp) # pop frog coordinte parameter
+	addi $sp, $sp, 4 # increase length of stack
+	add $t0, $t0, $a0 # jump to position
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	FrogCheck: # create frog shape, square for now
+	lw $t8, 0($t0) # load current color
+	#check if value is red 
+	beq $t8, 0xC10303, Collision
+	addi $t1, $t1, 4
+	addi $t0, $t0, 4
+	beq $t1, 16, MoveToNextRow
+	j FrogCheck
+	MoveToNextRow:
+	add $t0, $t0, 112 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 4, finish
+	j FrogLoop
+	
+	Collision:
+	li $s7, 1
+	j ENDCHECK
+	
+	ENDCHECK:
+	jr $ra 
+
+	
+checkCollisionWater:
+	
+	# want to loop over the frog position and if any color is red or blue
+	
+	lw $a0, 0($sp) # pop frog coordinte parameter
+	addi $sp, $sp, 4 # increase length of stack
+	add $t0, $t0, $a0 # jump to position
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	FrogCheckLog: # create frog shape, square for now
+	lw $t8, 0($t0) # load current color
+	#check if value is blue
+	beq $t8, 0x00F0FF, CollisionLog
+	addi $t1, $t1, 4
+	addi $t0, $t0, 4
+	beq $t1, 16, MoveToNextRowLog
+	j FrogCheckLog
+	MoveToNextRowLog:
+	add $t0, $t0, 112 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 4, finish
+	j FrogLoop
+	
+	CollisionLog:
+	li $s7, 1
+	j ENDCHECKLOG
+	
+	ENDCHECKLOG:
+	jr $ra 
+
+checkIfOnLog:
+	
+	add $t0, $t0, $a0 # jump to position
+	#want to check if its on a log
+	lw $t8, 0($t0) # load current color
+	#check if value is brown
+	beq $t8, 0xCC5C3E , UpdateFlag
+	j FINISHMOVEMENT
+	UpdateFlag:
+	li $a3, 1
+	
+	
+	
+	
+	
+frogShift:	
+
+	bge $s4, 1536 , ShiftFrogRight
+	ble $s4, 1664 , ShiftFrogLeft
+	j FINISHMOVEMENT
+	
+	ShiftFrogLeft:
+	subi $s4, $s4, 4
+	j FINISHMOVEMENT
+	
+	ShiftFrogRight:
+	addi $s4, $s4, 4
+	j FINISHMOVEMENT
+	
+	FINISHMOVEMENT:
+	jr $ra
+	
+	
+			
+							
+
 
 Exit:
 	li $v0, 10 # terminate the program gracefully
