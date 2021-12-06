@@ -32,7 +32,7 @@ logRow2: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x
 
 main:	
 	InitalGame:
-	li $a3, 3 #inital number of lives
+	li $k1, 3 #inital number of lives
 	li $k0, 0 # score
 	DefaultPosition:
 	#load variables
@@ -74,8 +74,6 @@ main:
 	addi $sp, $sp, -4 # move stack pointer one word and store logrow1
 	sw $s1, 0($sp)
 	jal shiftArrayRight
-	
-	
 
 	addi $sp, $sp, -4 # move stack pointer one word and store carrow2
 	sw $s2, 0($sp) 
@@ -99,21 +97,23 @@ main:
 	
 	respond_to_w:
 	
-	li $v0, 4 # service 4 is prints string
-    	la $a0, currentScore  # load desired value into argument register $a0, using pseudo-op
-    	syscall
 	
 	subi $s4, $s4, 512
 	addi $k0, $k0, 10 # add 10 points
-		
+	
+	li $v0, 4 # service 4 is prints string
+    	la $a0, currentScore  
+    	syscall
+	
 	li $v0, 1      # service 1 is print integer
-    	move $a0, $k0  # load desired value into argument register $a0, using pseudo-op
+    	move $a0, $k0  
     	syscall
     	
     	li $v0, 4      # service 4 is prints string
-    	la $a0, newLine  # load desired value into argument register $a0, using pseudo-op
+    	la $a0, newLine  
     	syscall
     	
+
 	j ENDLISTEN
 	
 	respond_to_a:
@@ -178,7 +178,7 @@ main:
 	Sleep:
 	
 	jal drawLives #draw remaining lives
-	beq $a3, 0, GameOver # exit when all lives are lost
+	beq $k1, 0, GameOver # exit when all lives are lost
 	ble $s4, 128, winGame  # if frog reaches the end
 	
 	li $v0, 32
@@ -543,7 +543,7 @@ checkCollisionCar:
 	
 	Collision:
 	li $s7, 1
-	subi $a3, $a3, 1
+	subi $k1, $k1, 1
 	j ENDCHECK
 	
 	ENDCHECK:
@@ -577,26 +577,14 @@ checkCollisionWater:
 	
 	CollisionLog:
 	li $s7, 1
-	subi $a3, $a3, 1
+	subi $k1, $k1, 1
 	j ENDCHECKLOG
 	
 	ENDCHECKLOG:
 	jr $ra 
 
-checkIfOnLog:
-	
-	add $t0, $t0, $a0 # jump to position
-	#want to check if its on a log
-	lw $t8, 0($t0) # load current color
-	#check if value is brown
-	beq $t8, 0xCC5C3E , UpdateFlag
-	j FINISHMOVEMENT
-	UpdateFlag:
-	li $a3, 1
-	
-	
-	
-	
+
+		
 	
 frogShift:	
 
@@ -627,9 +615,9 @@ drawLives:
 	addi $t5, $t5, 144
 	addi $t6, $t6, 156
 	
-	beq $a3, 3, ThreeLives
-	beq $a3, 2, TwoLives
-	beq $a3, 1, OneLife
+	beq $k1, 3, ThreeLives
+	beq $k1, 2, TwoLives
+	beq $k1, 1, OneLife
 	jr $ra
 	
 
