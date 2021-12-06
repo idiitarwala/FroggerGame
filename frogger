@@ -21,8 +21,8 @@
 .data
 displayAddress: .word 0x10008000
 frogLocation: .word 3648
-initialCarPosition: .word 
-intialLogPosition: .word 
+newLine: .asciiz "\n"
+currentScore: .asciiz "Current Score: "
 carRow1: .word 0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A
 carRow2: .word 0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0xC10303,0x3A3A3A,0x3A3A3A,0x3A3A3A,0x3A3A3A
 logRow1: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E,0xCC5C3E
@@ -33,6 +33,7 @@ logRow2: .word 0x00F0FF,0x00F0FF,0x00F0FF,0x00F0FF,0xCC5C3E,0xCC5C3E,0xCC5C3E,0x
 main:	
 	InitalGame:
 	li $a3, 3 #inital number of lives
+	li $k0, 0 # score
 	DefaultPosition:
 	#load variables
 	lw $s4, frogLocation
@@ -41,6 +42,7 @@ main:
 	la $s1, logRow1
 	la $s0, logRow2
 	li $s7, 0   # value of 1 if collision occurs
+	 
 	
 	
 	StartHere: #start loop here
@@ -97,7 +99,21 @@ main:
 	
 	respond_to_w:
 	
+	li $v0, 4 # service 4 is prints string
+    	la $a0, currentScore  # load desired value into argument register $a0, using pseudo-op
+    	syscall
+	
 	subi $s4, $s4, 512
+	addi $k0, $k0, 10 # add 10 points
+		
+	li $v0, 1      # service 1 is print integer
+    	move $a0, $k0  # load desired value into argument register $a0, using pseudo-op
+    	syscall
+    	
+    	li $v0, 4      # service 4 is prints string
+    	la $a0, newLine  # load desired value into argument register $a0, using pseudo-op
+    	syscall
+    	
 	j ENDLISTEN
 	
 	respond_to_a:
@@ -172,9 +188,27 @@ main:
 	j StartHere
 	
 	winGame: # reset frog position if game is won
+	
+	addi $k0, $k0, 50 #add 50 points
+	
+	li $v0, 4 # service 4 is prints string
+    	la $a0, currentScore  
+    	syscall
+	
+	li $v0, 1      # service 1 is print integer
+    	move $a0, $k0  
+    	syscall
+    	
+    	li $v0, 4      # service 4 is prints string
+    	la $a0, newLine  
+    	syscall
+    	
+	
 	li $v0, 32
 	li $a0, 1000
 	syscall
+	
+	
 	
 	j DefaultPosition
 	
