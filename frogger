@@ -14,7 +14,7 @@
 #
 # Which milestone is reached in this submission?
 # 
-# - Milestone 3
+# - Milestone 4
 
 #####################################################################
 
@@ -34,6 +34,7 @@ main:
 	InitalGame:
 	li $k1, 3 #inital number of lives
 	li $k0, 0 # score
+	li $v1, 0 # number of times frog has crossed finish line
 	DefaultPosition:
 	#load variables
 	lw $s4, frogLocation
@@ -178,8 +179,10 @@ main:
 	Sleep:
 	
 	jal drawLives #draw remaining lives
+	jal drawCompletedFrogs
 	beq $k1, 0, GameOver # exit when all lives are lost
 	ble $s4, 128, winGame  # if frog reaches the end
+	beq $v1, 5, winGameGood # game is finished
 	
 	li $v0, 32
 	li $a0, 1000
@@ -190,7 +193,7 @@ main:
 	winGame: # reset frog position if game is won
 	
 	addi $k0, $k0, 50 #add 50 points
-	
+	addi $v1, $v1, 1 #update number of frogs that made it
 	li $v0, 4 # service 4 is prints string
     	la $a0, currentScore  
     	syscall
@@ -229,6 +232,15 @@ main:
 	j InputWait
 	
 	respond_to_r:
+	j InitalGame
+	
+	
+	winGameGood:
+	
+	li $v0, 32
+	li $a0, 1000
+	syscall
+	
 	j InitalGame
 	
 	
@@ -605,7 +617,7 @@ frogShift:
 	
 	
 drawLives:
-	li $t9, 0xFF0080
+	li $t9, 0xe31b23
 	
 	move $t4, $t0 # starting location for first life
 	move $t5, $t0 # starting location for second life
@@ -1001,9 +1013,280 @@ drawGameOver:
 	
 	jr $ra
 	
+drawCompletedFrogs:
+
+	li $t9, 0xFF0080
+	lw $t0, displayAddress
+	move $t4, $t0 # starting location for first frog
+	move $t5, $t0 # starting location for second frog
+	move $t6, $t0 # starting location for third frog
+	move $t7, $t0 # starting location for forth frog
+	move $t8, $t0 # starting location for fifth frog
+	
+	addi $t4, $t4, 244
+	addi $t5, $t5, 232
+	addi $t6, $t6, 220
+	addi $t7, $t7, 628
+	addi $t8, $t8, 616
+	
+	beq $v1, 5, FiveFrogs
+	beq $v1, 4, FourFrogs
+	beq $v1, 3, ThreeFrogs
+	beq $v1, 2, TwoFrogs
+	beq $v1, 1, OneFrog
+	jr $ra
 	
 	
 	
+	FiveFrogs:
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3LF5: # create frog shape, square for now
+	sw $t9, 0($t4) # create a row
+	addi $t1, $t1, 4
+	addi $t4, $t4, 4
+	beq $t1, 8, nextRowL3LF5
+	j L3LF5
+	nextRowL3LF5:
+	add $t4, $t4, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, ThreeLives2F5
+	j L3LF5
+	
+	ThreeLives2F5:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L2F5: # create frog shape, square for now
+	sw $t9, 0($t5) # create a row
+	addi $t1, $t1, 4
+	addi $t5, $t5, 4
+	beq $t1, 8, nextRowL3L2F5
+	j L3L2F5
+	nextRowL3L2F5:
+	add $t5, $t5, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, ThreeLives3F5
+	j L3L2F5
+	
+	ThreeLives3F5:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L3F5: # create frog shape, square for now
+	sw $t9, 0($t6) # create a row
+	addi $t1, $t1, 4
+	addi $t6, $t6, 4
+	beq $t1, 8, nextRowL3L3F5
+	j L3L3F5
+	nextRowL3L3F5:
+	add $t6, $t6, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, fourLives5
+	j L3L3F5
+	
+	fourLives5:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L3F445: # create frog shape, square for now
+	sw $t9, 0($t7) # create a row
+	addi $t1, $t1, 4
+	addi $t7, $t7, 4
+	beq $t1, 8, nextRowL3L3F445
+	j L3L3F445
+	nextRowL3L3F445:
+	add $t7, $t7, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, fiveLives
+	j L3L3F445
+	
+	fiveLives:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L3F4455: # create frog shape, square for now
+	sw $t9, 0($t8) # create a row
+	addi $t1, $t1, 4
+	addi $t8, $t8, 4
+	beq $t1, 8, nextRowL3L3F4455
+	j L3L3F4455
+	nextRowL3L3F4455:
+	add $t8, $t8, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, finish
+	j L3L3F4455
+	
+	
+	FourFrogs:
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3LF4: # create frog shape, square for now
+	sw $t9, 0($t4) # create a row
+	addi $t1, $t1, 4
+	addi $t4, $t4, 4
+	beq $t1, 8, nextRowL3LF4
+	j L3LF4
+	nextRowL3LF4:
+	add $t4, $t4, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, ThreeLives2F4
+	j L3LF4
+	
+	ThreeLives2F4:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L2F4: # create frog shape, square for now
+	sw $t9, 0($t5) # create a row
+	addi $t1, $t1, 4
+	addi $t5, $t5, 4
+	beq $t1, 8, nextRowL3L2F4
+	j L3L2F4
+	nextRowL3L2F4:
+	add $t5, $t5, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, ThreeLives3F4
+	j L3L2F4
+	
+	ThreeLives3F4:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L3F4: # create frog shape, square for now
+	sw $t9, 0($t6) # create a row
+	addi $t1, $t1, 4
+	addi $t6, $t6, 4
+	beq $t1, 8, nextRowL3L3F4
+	j L3L3F4
+	nextRowL3L3F4:
+	add $t6, $t6, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, fourLives
+	j L3L3F4
+	
+	fourLives:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L3F44: # create frog shape, square for now
+	sw $t9, 0($t7) # create a row
+	addi $t1, $t1, 4
+	addi $t7, $t7, 4
+	beq $t1, 8, nextRowL3L3F44
+	j L3L3F44
+	nextRowL3L3F44:
+	add $t7, $t7, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, finish
+	j L3L3F44
+
+		
+	ThreeFrogs:
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3LF: # create frog shape, square for now
+	sw $t9, 0($t4) # create a row
+	addi $t1, $t1, 4
+	addi $t4, $t4, 4
+	beq $t1, 8, nextRowL3LF
+	j L3LF
+	nextRowL3LF:
+	add $t4, $t4, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, ThreeLives2F
+	j L3LF
+	
+	ThreeLives2F:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L2F: # create frog shape, square for now
+	sw $t9, 0($t5) # create a row
+	addi $t1, $t1, 4
+	addi $t5, $t5, 4
+	beq $t1, 8, nextRowL3L2F
+	j L3L2F
+	nextRowL3L2F:
+	add $t5, $t5, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, ThreeLives3F
+	j L3L2F
+	
+	ThreeLives3F:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L3L3F: # create frog shape, square for now
+	sw $t9, 0($t6) # create a row
+	addi $t1, $t1, 4
+	addi $t6, $t6, 4
+	beq $t1, 8, nextRowL3L3F
+	j L3L3F
+	nextRowL3L3F:
+	add $t6, $t6, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, finish
+	j L3L3F
+	
+
+	TwoFrogs:
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L2LF: # create frog shape, square for now
+	sw $t9, 0($t4) # create a row
+	addi $t1, $t1, 4
+	addi $t4, $t4, 4
+	beq $t1, 8, nextRowL2LF
+	j L2LF
+	nextRowL2LF:
+	add $t4, $t4, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, TwoLives2F
+	j L2LF
+	
+	TwoLives2F:
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L2L2F: # create frog shape, square for now
+	sw $t9, 0($t5) # create a row
+	addi $t1, $t1, 4
+	addi $t5, $t5, 4
+	beq $t1, 8, nextRowL2L2F
+	j L2L2F
+	nextRowL2L2F:
+	add $t5, $t5, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, finish
+	j L2L2F
+	
+	OneFrog:
+	
+	li $t1, 0 # horizontal counter
+	li $t2, 0 # vertical counter
+	L1LF: # create frog shape, square for now
+	sw $t9, 0($t4) # create a row
+	addi $t1, $t1, 4
+	addi $t4, $t4, 4
+	beq $t1, 8, nextRowL1LF
+	j L1L
+	nextRowL1LF:
+	add $t4, $t4, 120 # jump to next row and repeat
+	li $t1, 0
+	add $t2, $t2, 1
+	beq $t2, 2, finish
+	j L1LF
+	
+
 Exit:
 	li $v0, 10 # terminate the program gracefully
 	syscall
