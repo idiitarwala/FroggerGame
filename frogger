@@ -102,6 +102,14 @@ main:
 	subi $s4, $s4, 512
 	addi $k0, $k0, 10 # add 10 points
 	
+	
+	li $v0, 31
+	li $a0, 70
+	li $a1, 600
+	li $a2, 35
+	li $a3, 100
+	syscall
+	
 	li $v0, 4 # service 4 is prints string
     	la $a0, currentScore  
     	syscall
@@ -120,16 +128,41 @@ main:
 	respond_to_a:
 	
 	subi $s4, $s4, 16
+	
+	li $v0, 31
+	li $a0, 70
+	li $a1, 600
+	li $a2, 35
+	li $a3, 100
+	syscall
+	
+	
 	j ENDLISTEN
 	
 	respond_to_s:
 	
 	addi $s4, $s4, 512
+	
+	li $v0, 31
+	li $a0, 70
+	li $a1, 600
+	li $a2, 35
+	li $a3, 100
+	syscall
+	
 	j ENDLISTEN
 	
 	respond_to_d:
 	
 	addi $s4, $s4, 16
+	
+	li $v0, 31
+	li $a0, 70
+	li $a1, 600
+	li $a2, 35
+	li $a3, 100
+	syscall
+	
 	j ENDLISTEN
 	
 	respond_to_q:
@@ -143,12 +176,12 @@ main:
 	addi $sp, $sp, -4  #move stack pointer one word and store carrow1
 	sw $s4, 0($sp)
 	jal checkCollisionCar
-	beq $s7, 1, DefaultPosition  #if 1, collision has occured and want to change state of game
+	beq $s7, 1, CollisionDetected   #if 1, collision has occured and want to change state of game
 	
 	addi $sp, $sp, -4  #move stack pointer one word and store carrow1
 	sw $s4, 0($sp)
 	jal checkCollisionWater
-	beq $s7, 1, DefaultPosition  #if 1, collision has occured and want to change state of game
+	beq $s7, 1, CollisionDetected  #if 1, collision has occured and want to change state of game
 	
 
 	DrawingFrog:
@@ -194,6 +227,16 @@ main:
 	
 	addi $k0, $k0, 50 #add 50 points
 	addi $v1, $v1, 1 #update number of frogs that made it
+	
+	li $v0, 31
+	li $a0, 60
+	li $a1, 2000         
+	li $a2, 100
+	li $a3, 100
+	syscall
+	
+	
+	
 	li $v0, 4 # service 4 is prints string
     	la $a0, currentScore  
     	syscall
@@ -208,11 +251,9 @@ main:
     	
 	
 	li $v0, 32
-	li $a0, 1000
+	li $a0, 3000
 	syscall
-	
-	
-	
+
 	j DefaultPosition
 	
 	GameOver: # draw game over symbol
@@ -220,6 +261,13 @@ main:
 	jal deleteScreen
 	jal drawGameOver
 	
+	li $v0, 33
+	li $a0, 40
+	li $a1, 7000
+	li $a2, 101
+	li $a3, 127
+	syscall
+
 	InputWait:
 	lw $t8, 0xffff0000
 	beq $t8, 1, end_input
@@ -237,11 +285,47 @@ main:
 	
 	winGameGood:
 	
+	
+	li $v0, 31
+	li $a0, 60
+	li $a1, 7000        
+	li $a2, 97
+	li $a3, 100
+	syscall
+	
+	
 	li $v0, 32
-	li $a0, 1000
+	li $a0, 7000
 	syscall
 	
 	j InitalGame
+	
+	CollisionDetected:
+	
+	li $v0, 31
+	li $a0, 60
+	li $a1, 1000
+	li $a2, 127
+	li $a3, 127
+	syscall
+	
+	subi $k0, $k0, 30 #add 50 points	
+	
+	li $v0, 4 # service 4 is prints string
+    	la $a0, currentScore  
+    	syscall
+	
+	li $v0, 1      # service 1 is print integer
+    	move $a0, $k0  
+    	syscall
+    	
+    	li $v0, 4      # service 4 is prints string
+    	la $a0, newLine  
+    	syscall
+    	
+	
+	j DefaultPosition
+	
 	
 	
 drawBackground:
@@ -300,6 +384,7 @@ drawFrog:
 	addi $sp, $sp, 4 # increase length of stack
 	add $t0, $t0, $a0 # jump to position
 	
+
 	li $t1, 0 # horizontal counter
 	li $t2, 0 # vertical counter
 	FrogLoop: # create frog shape, square for now
